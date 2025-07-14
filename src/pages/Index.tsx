@@ -2,11 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Transaction } from '@/types/financial';
 import { calculateSummary, createInstallments, getCurrentMonthTransactions, getTransactionsByMonth } from '@/utils/financial';
+import { calculateBudgetProgress } from '@/utils/budget';
 import { FinancialCard } from '@/components/FinancialCard';
 import { TransactionForm } from '@/components/TransactionForm';
 import { TransactionList } from '@/components/TransactionList';
 import { FinancialChart } from '@/components/FinancialChart';
 import { MonthFilter } from '@/components/MonthFilter';
+import { BudgetForm } from '@/components/BudgetForm';
+import { BudgetProgress } from '@/components/BudgetProgress';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Wallet } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -16,6 +19,7 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [budgetRefresh, setBudgetRefresh] = useState(0);
 
   // Carregar dados do localStorage na inicialização
   useEffect(() => {
@@ -77,6 +81,11 @@ const Index = () => {
 
   const filteredTransactions = getTransactionsByMonth(transactions, selectedMonth, selectedYear);
   const summary = calculateSummary(filteredTransactions);
+  const budgetProgress = calculateBudgetProgress(transactions, selectedMonth, selectedYear);
+
+  const handleBudgetSet = () => {
+    setBudgetRefresh(prev => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,6 +137,16 @@ const Index = () => {
             amount={summary.balance}
             type="balance"
           />
+        </div>
+
+        {/* Orçamento */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
+          <BudgetForm
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            onBudgetSet={handleBudgetSet}
+          />
+          <BudgetProgress budgets={budgetProgress} />
         </div>
 
         {/* Gráfico */}
