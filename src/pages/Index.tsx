@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { Transaction } from '@/types/financial';
-import { calculateSummary, createInstallments, getCurrentMonthTransactions } from '@/utils/financial';
+import { calculateSummary, createInstallments, getCurrentMonthTransactions, getTransactionsByMonth } from '@/utils/financial';
 import { FinancialCard } from '@/components/FinancialCard';
 import { TransactionForm } from '@/components/TransactionForm';
 import { TransactionList } from '@/components/TransactionList';
 import { FinancialChart } from '@/components/FinancialChart';
+import { MonthFilter } from '@/components/MonthFilter';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Wallet } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -13,6 +14,8 @@ import { toast } from '@/hooks/use-toast';
 const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Carregar dados do localStorage na inicialização
   useEffect(() => {
@@ -67,8 +70,13 @@ const Index = () => {
     }
   };
 
-  const currentMonthTransactions = getCurrentMonthTransactions(transactions);
-  const summary = calculateSummary(currentMonthTransactions);
+  const handleMonthChange = (month: number, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+  };
+
+  const filteredTransactions = getTransactionsByMonth(transactions, selectedMonth, selectedYear);
+  const summary = calculateSummary(filteredTransactions);
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,6 +102,15 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Filtro por Mês */}
+        <div className="animate-fade-in">
+          <MonthFilter
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            onMonthChange={handleMonthChange}
+          />
+        </div>
+
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
           <FinancialCard
@@ -115,13 +132,13 @@ const Index = () => {
 
         {/* Gráfico */}
         <div className="animate-slide-up">
-          <FinancialChart transactions={currentMonthTransactions} />
+          <FinancialChart transactions={filteredTransactions} />
         </div>
 
         {/* Formulário e Lista */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <TransactionForm onAddTransaction={handleAddTransaction} />
-          <TransactionList transactions={currentMonthTransactions} />
+          <TransactionList transactions={filteredTransactions} />
         </div>
 
         {/* Estatísticas */}

@@ -101,3 +101,11 @@ export function getCurrentMonthTransactions(transactions: Transaction[]): Transa
            transactionDate.getFullYear() === currentYear;
   });
 }
+
+export function getTransactionsByMonth(transactions: Transaction[], month: number, year: number): Transaction[] {
+  return transactions.filter(transaction => {
+    const transactionDate = new Date(transaction.date);
+    return transactionDate.getMonth() === month && 
+           transactionDate.getFullYear() === year;
+  });
+}
